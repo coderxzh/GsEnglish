@@ -1,0 +1,7 @@
+{
+  "name": "基石英语 (Cornerstone English)",
+  "description": "一款激励驱动的英语音标学习软件，包含沉浸式阅读、AI发音评分及词缀之战游戏。",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
