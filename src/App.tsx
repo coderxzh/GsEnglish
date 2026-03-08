@@ -1,13 +1,13 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
-  Home, 
-  BookOpen, 
-  Gamepad2, 
-  User, 
-  Settings, 
-  Trophy, 
-  Coins, 
+import {
+  Home,
+  BookOpen,
+  Gamepad2,
+  User,
+  Settings,
+  Trophy,
+  Coins,
   Clock,
   ChevronRight,
   Mic,
@@ -28,10 +28,23 @@ import {
   ClipboardCheck,
   X,
   Minus,
-  Plus
+  Plus,
+  Rocket,
+  Zap,
+  HelpCircle,
+  ChevronLeft
 } from 'lucide-react';
 import { cn } from './lib/utils';
 import { UserState, INITIAL_WORDS } from './types';
+
+interface Book {
+  id: number;
+  title: string;
+  author: string;
+  cover: string;
+  color: string;
+  progress: number;
+}
 
 // --- Context ---
 const AppContext = createContext<{
@@ -49,7 +62,50 @@ const useApp = () => {
   return context;
 };
 
+// --- Helper Functions ---
+const isImageUrl = (cover: string) => cover.startsWith('/') || cover.startsWith('http');
+
 // --- Components ---
+
+const BookCard = ({ book, onClick }: { book: Book, onClick: () => void }) => {
+  return (
+    <button
+      onClick={onClick}
+      className="app-card w-full overflow-hidden flex flex-col group text-left h-full active:scale-[0.98] transition-transform"
+    >
+      <div className={cn("aspect-[3/4] flex items-center justify-center p-6 relative overflow-hidden", book.color)}>
+        {isImageUrl(book.cover) ? (
+          <img
+            src={book.cover}
+            alt={book.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+        ) : (
+          <div className="text-6xl group-hover:scale-110 transition-transform duration-500 dropdown-shadow-md">
+            {book.cover}
+          </div>
+        )}
+      </div>
+      <div className="p-4 space-y-1">
+        <h3 className="font-black text-slate-900 truncate font-display">{book.title}</h3>
+        <p className="text-[11px] font-bold text-slate-400 truncate">{book.author}</p>
+        <div className="pt-2 space-y-1.5">
+          <div className="flex items-center justify-between text-[10px] font-black text-slate-400 uppercase tracking-tighter">
+            <span>进度</span>
+            <span>{book.progress}%</span>
+          </div>
+          <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${book.progress}%` }}
+              className="h-full bg-brand-primary"
+            />
+          </div>
+        </div>
+      </div>
+    </button>
+  );
+};
 
 const Onboarding = ({ onComplete }: { onComplete: (grade: string) => void }) => {
   const [grade, setGrade] = useState('');
@@ -85,8 +141,8 @@ const Onboarding = ({ onComplete }: { onComplete: (grade: string) => void }) => 
   return (
     <div className="fixed inset-0 bg-white z-50 flex flex-col p-6 overflow-y-auto no-scrollbar">
       <div className="flex justify-end">
-        <button 
-          onClick={() => onComplete('未设置')} 
+        <button
+          onClick={() => onComplete('未设置')}
           className="text-slate-400 font-bold py-2 px-4 hover:bg-slate-50 rounded-full transition-colors"
         >
           跳过
@@ -112,8 +168,8 @@ const Onboarding = ({ onComplete }: { onComplete: (grade: string) => void }) => 
                   onClick={() => setGrade(item)}
                   className={cn(
                     "py-4 rounded-xl transition-all font-bold text-base",
-                    grade === item 
-                      ? "bg-brand-primary text-white shadow-xl shadow-brand-primary/20 scale-105 z-10" 
+                    grade === item
+                      ? "bg-brand-primary text-white shadow-xl shadow-brand-primary/20 scale-105 z-10"
                       : "bg-slate-50 text-slate-600 hover:bg-slate-100"
                   )}
                 >
@@ -144,9 +200,9 @@ const Header = () => {
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm px-4 py-3 flex items-center justify-between border-b border-slate-100/50">
       <div className="flex items-center gap-2">
         <div className="w-10 h-10 rounded-full bg-brand-primary/10 border-2 border-white shadow-sm overflow-hidden flex items-center justify-center">
-          <img 
-            src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`} 
-            alt="Avatar" 
+          <img
+            src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`}
+            alt="Avatar"
             className="w-full h-full object-cover"
           />
         </div>
@@ -207,8 +263,8 @@ const HomeView = () => {
           disabled={user.hasCheckedInToday}
           className={cn(
             "px-6 py-3 rounded-xl font-black text-sm transition-all active:scale-95",
-            user.hasCheckedInToday 
-              ? "bg-slate-100 text-slate-400 cursor-default" 
+            user.hasCheckedInToday
+              ? "bg-slate-100 text-slate-400 cursor-default"
               : "bg-brand-primary text-white shadow-lg shadow-brand-primary/20 hover:scale-105"
           )}
         >
@@ -217,30 +273,10 @@ const HomeView = () => {
       </section>
 
       {/* Current Book Card */}
-      <section 
+      <BookCard
+        book={currentBook}
         onClick={() => setActiveTab('library')}
-        className="app-card p-4 flex gap-4 items-center cursor-pointer hover:border-brand-primary/30 transition-all group"
-      >
-        <div className={cn("w-20 h-28 rounded-lg shadow-md flex-shrink-0 relative overflow-hidden flex items-center justify-center text-4xl", currentBook.color)}>
-          <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent" />
-          {currentBook.cover}
-          <BookOpen className="absolute top-2 right-2 w-4 h-4 text-slate-400 opacity-50" />
-        </div>
-        <div className="flex-1">
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="text-xl font-black text-slate-900 font-display group-hover:text-brand-primary transition-colors">{currentBook.title}</h2>
-            <button className="text-xs font-bold text-slate-400 flex items-center gap-1">
-              修改 <ChevronRight className="w-3 h-3" />
-            </button>
-          </div>
-          <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden mb-2">
-            <div className="h-full bg-brand-primary" style={{ width: `${currentBook.progress}%` }} />
-          </div>
-          <div className="flex justify-between text-[11px] font-bold text-slate-400">
-            <span>学习进度 {currentBook.progress}%</span>
-          </div>
-        </div>
-      </section>
+      />
 
       {/* Today's Plan */}
       <section className="bg-white rounded-3xl p-8 shadow-[0_4px_20px_rgba(0,0,0,0.02)] border border-slate-100/50">
@@ -248,7 +284,7 @@ const HomeView = () => {
           <h3 className="text-lg font-black text-slate-900 font-display">今日计划</h3>
           <span className="text-xs font-bold text-brand-primary">和大家一起开启学习...</span>
         </div>
-        
+
         <div className="grid grid-cols-2 gap-8 mb-10">
           <div className="text-center">
             <div className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">需新学</div>
@@ -271,51 +307,53 @@ const HomeView = () => {
             <Clock className="w-4 h-4" />
             预计用时 4 分钟
           </div>
-          <button 
+          <button
             onClick={() => setActiveTab('reader')}
             className="btn-primary w-full text-xl"
           >
             开始学习吧！
           </button>
         </div>
-      </section>
+      </section >
 
       {/* Quick Tools Grid */}
-      <div className="grid grid-cols-4 gap-4">
-        {[
-          { 
-            icon: BookOpen, 
-            label: '音标学习', 
-            badge: 'NEW', 
-            onClick: () => setActiveTab('phonetics')
-          },
-          { icon: Mic, label: '跟读训练', badge: 'HOT', onClick: () => setActiveTab('reader') },
-          { icon: Sword, label: '音标对战', badge: '', onClick: () => setActiveTab('game') },
-          { icon: Library, label: '生词本', badge: '', onClick: () => setActiveTab('wordbank') },
-        ].map((tool, i) => (
-          <button 
-            key={i} 
-            onClick={tool.onClick}
-            className="app-card p-4 flex flex-col items-center gap-2 bg-white hover:bg-slate-50 transition-colors relative"
-          >
-            {tool.badge && (
-              <span className={cn(
-                "absolute top-1 right-1 px-1.5 py-0.5 rounded-md text-[8px] font-black text-white",
-                tool.badge === 'NEW' ? 'bg-rose-500' : 'bg-orange-500'
-              )}>
-                {tool.badge}
-              </span>
-            )}
-            <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-brand-primary">
-              <tool.icon className="w-6 h-6" />
-            </div>
-            <span className="text-[11px] font-black text-slate-600 whitespace-nowrap">{tool.label}</span>
-          </button>
-        ))}
-      </div>
+      < div className="grid grid-cols-4 gap-4" >
+        {
+          [
+            {
+              icon: BookOpen,
+              label: '音标学习',
+              badge: 'NEW',
+              onClick: () => setActiveTab('phonetics')
+            },
+            { icon: Mic, label: '跟读训练', badge: 'HOT', onClick: () => setActiveTab('reader') },
+            { icon: Sword, label: '音标对战', badge: '', onClick: () => setActiveTab('game') },
+            { icon: Library, label: '生词本', badge: '', onClick: () => setActiveTab('wordbank') },
+          ].map((tool, i) => (
+            <button
+              key={i}
+              onClick={tool.onClick}
+              className="app-card p-4 flex flex-col items-center gap-2 bg-white hover:bg-slate-50 transition-colors relative"
+            >
+              {tool.badge && (
+                <span className={cn(
+                  "absolute top-1 right-1 px-1.5 py-0.5 rounded-md text-[8px] font-black text-white",
+                  tool.badge === 'NEW' ? 'bg-rose-500' : 'bg-orange-500'
+                )}>
+                  {tool.badge}
+                </span>
+              )}
+              <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-brand-primary">
+                <tool.icon className="w-6 h-6" />
+              </div>
+              <span className="text-[11px] font-black text-slate-600 whitespace-nowrap">{tool.label}</span>
+            </button>
+          ))
+        }
+      </div >
 
       {/* Weekly Leaderboard */}
-      <section className="space-y-4">
+      < section className="space-y-4" >
         <div className="flex items-center justify-between px-2">
           <div className="flex items-center gap-2">
             <Trophy className="w-5 h-5 text-orange-500" />
@@ -323,15 +361,15 @@ const HomeView = () => {
           </div>
           <button className="text-xs font-bold text-slate-400">查看全部</button>
         </div>
-        
+
         <div className="app-card bg-white overflow-hidden">
           {[
             { rank: 1, name: '探险家小王', xp: 2840, initial: '王', color: 'text-orange-500' },
             { rank: 2, name: '英语达人', xp: 2650, initial: '英', color: 'text-slate-400' },
             { rank: 3, name: '单词王', xp: 2420, initial: '单', color: 'text-slate-400' },
           ].map((item, i) => (
-            <div 
-              key={i} 
+            <div
+              key={i}
               className={cn(
                 "flex items-center justify-between p-5",
                 i !== 2 && "border-b border-slate-50"
@@ -350,9 +388,9 @@ const HomeView = () => {
             </div>
           ))}
         </div>
-      </section>
+      </section >
 
-    </div>
+    </div >
   );
 };
 
@@ -431,8 +469,8 @@ const IPA_CATEGORIES = [
   }
 ];
 
-const ALL_IPA_SYMBOLS = IPA_CATEGORIES.flatMap(cat => 
-  cat.subCategories.flatMap(sub => 
+const ALL_IPA_SYMBOLS = IPA_CATEGORIES.flatMap(cat =>
+  cat.subCategories.flatMap(sub =>
     sub.groups.flatMap(group => group.symbols)
   )
 );
@@ -480,7 +518,7 @@ const PhoneticsView = () => {
             <div className="w-1.5 h-6 bg-brand-primary rounded-full" />
             {cat.title}
           </h3>
-          
+
           <div className="space-y-8">
             {cat.subCategories.map((sub, sIdx) => (
               <div key={sIdx} className="space-y-4">
@@ -488,7 +526,7 @@ const PhoneticsView = () => {
                   <span className="w-1 h-1 bg-slate-300 rounded-full" />
                   {sub.title}
                 </h4>
-                
+
                 <div className="space-y-6">
                   {sub.groups.map((group, gIdx) => (
                     <div key={gIdx} className="px-4">
@@ -499,20 +537,33 @@ const PhoneticsView = () => {
                       )}
                       <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
                         {group.symbols.map((symbol) => (
-                          <button
-                            key={symbol}
-                            onClick={() => {
-                              setSelectedPhonetic(symbol);
-                              setActiveTab('phoneticDetail');
-                            }}
-                            className={cn(
-                              "app-card aspect-square flex items-center justify-center text-xl font-black transition-all group",
-                              sub.color,
-                              "hover:border-brand-primary/30 hover:bg-brand-primary/5"
-                            )}
-                          >
-                            <span className="group-hover:scale-110 transition-transform">{symbol}</span>
-                          </button>
+                          <div key={symbol} className="relative group">
+                            <button
+                              onClick={() => {
+                                setSelectedPhonetic(symbol);
+                                setActiveTab('phoneticDetail');
+                              }}
+                              className={cn(
+                                "app-card w-full aspect-square flex items-center justify-center text-xl font-black transition-all",
+                                sub.color,
+                                "hover:border-brand-primary/30 hover:bg-brand-primary/5"
+                              )}
+                            >
+                              <span className="group-hover:scale-110 transition-transform">{symbol}</span>
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const catDir = cat.title.includes('元音') ? 'vowels' : 'consonants';
+                                const subDir = sub.title.includes('单') ? 'monophthongs' : sub.title.includes('双') ? 'diphthongs' : '';
+                                const path = `/audio/phonetics/${catDir}${subDir ? '/' + subDir : ''}/${symbol.replace(/:/g, '_')}.mp3`;
+                                playAudio(path);
+                              }}
+                              className="absolute top-1 right-1 p-1 bg-white/80 backdrop-blur-sm rounded-lg text-slate-400 opacity-0 group-hover:opacity-100 transition-all hover:text-brand-primary border border-slate-100"
+                            >
+                              <Volume2 className="w-3 h-3" />
+                            </button>
+                          </div>
                         ))}
                       </div>
                     </div>
@@ -598,8 +649,8 @@ const PhoneticDetailView = () => {
     <div className="min-h-screen bg-slate-50 pb-32">
       {/* Top Bar */}
       <div className="px-4 py-4 flex items-center justify-between bg-white/80 backdrop-blur-md sticky top-0 z-30 border-b border-slate-100">
-        <button 
-          onClick={() => setActiveTab('phonetics')} 
+        <button
+          onClick={() => setActiveTab('phonetics')}
           className="p-2 text-slate-400 hover:bg-slate-50 rounded-xl transition-colors"
         >
           <ChevronRight className="w-6 h-6 rotate-180" />
@@ -609,7 +660,7 @@ const PhoneticDetailView = () => {
           <div className="w-1 h-1 bg-slate-300 rounded-full" />
           <span>需复习 2</span>
         </div>
-        <button 
+        <button
           onClick={() => setActiveTab('phonetics')}
           className="p-2 text-slate-400 hover:bg-slate-50 rounded-xl transition-colors"
         >
@@ -629,21 +680,42 @@ const PhoneticDetailView = () => {
           </div>
 
           <div className="flex flex-col items-center justify-center py-4">
-            <motion.div 
-              key={detail.symbol}
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="text-9xl font-black text-brand-primary font-display mb-6 drop-shadow-sm"
-            >
-              {detail.symbol}
-            </motion.div>
+            <div className="relative">
+              <motion.div
+                key={detail.symbol}
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="text-9xl font-black text-brand-primary font-display mb-6 drop-shadow-sm cursor-pointer active:scale-95 transition-transform"
+                onClick={() => {
+                  const isVowel = detail.category.includes('元音');
+                  const catDir = isVowel ? 'vowels' : 'consonants';
+                  const subDir = detail.category.includes('单') ? 'monophthongs' : detail.category.includes('双') ? 'diphthongs' : '';
+                  const path = `/audio/phonetics/${catDir}${subDir ? '/' + subDir : ''}/${detail.symbol.replace(/:/g, '_')}.mp3`;
+                  playAudio(path);
+                }}
+              >
+                {detail.symbol}
+              </motion.div>
+              <button
+                onClick={() => {
+                  const isVowel = detail.category.includes('元音');
+                  const catDir = isVowel ? 'vowels' : 'consonants';
+                  const subDir = detail.category.includes('单') ? 'monophthongs' : detail.category.includes('双') ? 'diphthongs' : '';
+                  const path = `/audio/phonetics/${catDir}${subDir ? '/' + subDir : ''}/${detail.symbol.replace(/:/g, '_')}.mp3`;
+                  playAudio(path);
+                }}
+                className="absolute -top-4 -right-8 w-12 h-12 bg-brand-primary/10 rounded-2xl flex items-center justify-center text-brand-primary hover:bg-brand-primary/20 transition-all active:scale-90"
+              >
+                <Volume2 className="w-6 h-6" />
+              </button>
+            </div>
             <div className="text-sm font-bold text-slate-400 bg-slate-50 px-6 py-2 rounded-full border border-slate-100">
               {detail.category} • {detail.breakdown}
             </div>
           </div>
 
           {score !== null && (
-            <motion.div 
+            <motion.div
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               className="mt-8 flex flex-col items-center gap-2"
@@ -696,14 +768,17 @@ const PhoneticDetailView = () => {
             <div className="w-1.5 h-6 bg-brand-primary rounded-full" />
             发音要领
           </h3>
-          
+
           {/* Mouth/Tongue Position Diagram */}
           <div className="aspect-video rounded-2xl bg-slate-50 border border-slate-100 overflow-hidden relative group">
-            <img 
-              src={`https://picsum.photos/seed/${detail.symbol}_mouth/800/450`} 
-              alt="发音图解" 
-              className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-700 p-4"
-              referrerPolicy="no-referrer"
+            <img
+              src={`/images/phonetics/techniques/${detail.symbol.replace(/:/g, '_')}.png`}
+              alt="发音图解"
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                // 回退到占位图以防文件不存在
+                (e.target as HTMLImageElement).src = `https://picsum.photos/seed/${detail.symbol}_mouth/800/450`;
+              }}
             />
             <div className="absolute top-3 right-3 px-2 py-1 bg-white/80 backdrop-blur-sm rounded-lg text-[10px] font-black text-slate-400 border border-slate-100">
               发音图解
@@ -725,7 +800,7 @@ const PhoneticDetailView = () => {
 
       {/* Bottom Actions - Reader Style */}
       <div className="fixed bottom-0 left-0 right-0 p-6 bg-white/90 backdrop-blur-md border-t border-slate-100 flex items-center gap-4 max-w-4xl mx-auto z-40">
-        <button 
+        <button
           onClick={() => {
             const currentIndex = ALL_IPA_SYMBOLS.indexOf(selectedPhonetic || 'i:');
             const prevIndex = (currentIndex - 1 + ALL_IPA_SYMBOLS.length) % ALL_IPA_SYMBOLS.length;
@@ -736,19 +811,19 @@ const PhoneticDetailView = () => {
         >
           <ChevronRight className="w-6 h-6 rotate-180" />
         </button>
-        <button 
+        <button
           onClick={handleRecord}
           className={cn(
             "flex-1 h-16 rounded-2xl font-black text-lg shadow-xl flex items-center justify-center gap-3 transition-all active:scale-95",
-            isRecording 
-              ? "bg-rose-500 text-white animate-pulse shadow-rose-200" 
+            isRecording
+              ? "bg-rose-500 text-white animate-pulse shadow-rose-200"
               : "bg-brand-primary text-white shadow-brand-primary/20"
           )}
         >
           <Mic className="w-6 h-6" />
           {isRecording ? '正在录音...' : '点击跟读'}
         </button>
-        <button 
+        <button
           onClick={() => {
             const currentIndex = ALL_IPA_SYMBOLS.indexOf(selectedPhonetic || 'i:');
             const nextIndex = (currentIndex + 1) % ALL_IPA_SYMBOLS.length;
@@ -784,7 +859,7 @@ const WordBankView = () => {
             <Search className="w-5 h-5" />
           </div>
         </div>
-        
+
         <div className="flex gap-2 p-1 bg-slate-100 rounded-xl">
           {[
             { id: 'all', label: '全部' },
@@ -849,17 +924,17 @@ const WordBankView = () => {
 
 const ParentCenter = ({ onClose }: { onClose: () => void }) => {
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4"
     >
-      <motion.div 
+      <motion.div
         initial={{ y: 100 }}
         animate={{ y: 0 }}
         className="bg-white w-full max-w-lg rounded-t-[40px] sm:rounded-[40px] p-8 shadow-2xl relative"
       >
-        <button 
+        <button
           onClick={onClose}
           className="absolute top-6 right-6 p-2 bg-slate-100 rounded-full text-slate-400"
         >
@@ -933,11 +1008,11 @@ const ReaderView = () => {
         {/* Video Area */}
         <div className="flex justify-center">
           <div className="w-full max-w-md aspect-video bg-slate-200 rounded-[32px] overflow-hidden shadow-xl shadow-slate-200/50 border border-white relative group">
-            <video 
+            <video
               className="w-full h-full object-cover pointer-events-none"
-              autoPlay 
-              muted 
-              loop 
+              autoPlay
+              muted
+              loop
               playsInline
               src="https://assets.mixkit.co/videos/preview/mixkit-mother-reading-a-story-to-her-little-daughter-39744-large.mp4"
             />
@@ -964,7 +1039,7 @@ const ReaderView = () => {
                 </div>
               ))}
             </div>
-            
+
             <p className="text-slate-400 text-base font-medium">很久很久以前...</p>
           </div>
 
@@ -975,7 +1050,7 @@ const ReaderView = () => {
         </div>
 
         {score !== null && (
-          <motion.div 
+          <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             className="flex flex-col items-center gap-2"
@@ -998,7 +1073,7 @@ const ReaderView = () => {
         <button className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-slate-200 transition-colors">
           <Volume2 className="w-5 h-5" />
         </button>
-        <button 
+        <button
           onClick={handleRecord}
           className={cn(
             "w-16 h-16 rounded-full flex items-center justify-center text-white shadow-xl transition-all active:scale-90",
@@ -1034,32 +1109,11 @@ const LibraryView = () => {
 
       <div className="grid grid-cols-2 gap-4">
         {user.books.map((book) => (
-          <motion.button
+          <BookCard
             key={book.id}
-            whileHover={{ scale: 1.02 }}
+            book={book}
             onClick={() => handleSelectBook(book.id)}
-            className={cn(
-              "bg-white rounded-[32px] p-6 border-b-4 text-left flex flex-col gap-4 group transition-all",
-              user.currentBookId === book.id ? "border-brand-primary ring-2 ring-brand-primary/10" : "border-slate-100"
-            )}
-          >
-            <div className={cn("aspect-[3/4] rounded-2xl flex items-center justify-center text-6xl shadow-inner", book.color)}>
-              {book.cover}
-            </div>
-            <div>
-              <h3 className="font-bold text-slate-900 group-hover:text-brand-primary transition-colors">{book.title}</h3>
-              <p className="text-xs text-slate-400">{book.author}</p>
-            </div>
-            <div className="mt-auto">
-              <div className="flex justify-between text-[10px] font-bold text-slate-400 mb-1">
-                <span>进度</span>
-                <span>{book.progress}%</span>
-              </div>
-              <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                <div className="h-full bg-brand-primary" style={{ width: `${book.progress}%` }} />
-              </div>
-            </div>
-          </motion.button>
+          />
         ))}
       </div>
     </div>
@@ -1082,8 +1136,8 @@ const GameView = () => {
         {isEnabled ? '对战模式' : '对战已禁用'}
       </h2>
       <p className="text-slate-400 font-bold text-center max-w-xs">
-        {isEnabled 
-          ? '对战功能正在紧急开发中，敬请期待！' 
+        {isEnabled
+          ? '对战功能正在紧急开发中，敬请期待！'
           : '该功能已被家长监督模式禁用。如需开启，请前往“我的”页面进行设置。'}
       </p>
       {isEnabled && (
@@ -1117,14 +1171,14 @@ const ProfileView = () => {
       <AnimatePresence>
         {showParentalModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowParentalModal(false)}
               className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             />
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -1133,7 +1187,7 @@ const ProfileView = () => {
               <div className="p-6 space-y-6">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xl font-black text-slate-900 font-display">家长监督设置</h3>
-                  <button 
+                  <button
                     onClick={() => setShowParentalModal(false)}
                     className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400"
                   >
@@ -1148,14 +1202,14 @@ const ProfileView = () => {
                       <p className="font-black text-slate-900 text-sm">对战模式</p>
                       <p className="text-[10px] font-bold text-slate-400">开启或关闭对战功能</p>
                     </div>
-                    <button 
+                    <button
                       onClick={() => updateParentalControl({ battleModeEnabled: !user.parentalControl.battleModeEnabled })}
                       className={cn(
                         "w-12 h-6 rounded-full transition-colors relative",
                         user.parentalControl.battleModeEnabled ? "bg-brand-primary" : "bg-slate-200"
                       )}
                     >
-                      <motion.div 
+                      <motion.div
                         animate={{ x: user.parentalControl.battleModeEnabled ? 24 : 4 }}
                         className="absolute top-1 left-0 w-4 h-4 bg-white rounded-full shadow-sm"
                       />
@@ -1169,14 +1223,14 @@ const ProfileView = () => {
                       <span className="text-sm font-black text-brand-primary font-display">{user.parentalControl.battleDurationLimit} 分钟</span>
                     </div>
                     <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl">
-                      <button 
+                      <button
                         onClick={() => updateParentalControl({ battleDurationLimit: Math.max(5, user.parentalControl.battleDurationLimit - 5) })}
                         className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-slate-400 active:scale-90 transition-transform"
                       >
                         <Minus className="w-4 h-4" />
                       </button>
                       <div className="flex-1 relative flex items-center">
-                        <input 
+                        <input
                           type="range"
                           min="5"
                           max="120"
@@ -1186,7 +1240,7 @@ const ProfileView = () => {
                           className="w-full h-2 bg-slate-200 rounded-full appearance-none cursor-pointer accent-brand-primary"
                         />
                       </div>
-                      <button 
+                      <button
                         onClick={() => updateParentalControl({ battleDurationLimit: Math.min(120, user.parentalControl.battleDurationLimit + 5) })}
                         className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-slate-400 active:scale-90 transition-transform"
                       >
@@ -1197,7 +1251,7 @@ const ProfileView = () => {
                   </div>
                 </div>
 
-                <button 
+                <button
                   onClick={() => setShowParentalModal(false)}
                   className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-sm shadow-xl shadow-slate-900/20 active:scale-[0.98] transition-all"
                 >
@@ -1259,7 +1313,10 @@ const ProfileView = () => {
           </div>
           <span className="text-lg font-black text-slate-900 font-display">{user.coins} 积分</span>
         </div>
-        <button className="text-xs font-bold text-slate-400 flex items-center gap-1">
+        <button
+          onClick={() => setActiveTab('pointsMall')}
+          className="text-xs font-bold text-slate-400 flex items-center gap-1"
+        >
           去兑换 <ChevronRight className="w-3 h-3" />
         </button>
       </section>
@@ -1297,12 +1354,11 @@ const ProfileView = () => {
           { icon: BarChart3, label: '学习报告' },
           { icon: ClipboardCheck, label: '测试报告' },
           { icon: Library, label: '生词本', onClick: () => setActiveTab('wordbank') },
-          { icon: Star, label: '我的收藏' },
           { icon: BookOpen, label: '我的图书' },
-          { icon: Gamepad2, label: '积分商城', onClick: () => setActiveTab('wordbank') },
+          { icon: Gamepad2, label: '积分商城', onClick: () => setActiveTab('pointsMall') },
         ].map((item, i) => (
-          <button 
-            key={i} 
+          <button
+            key={i}
             onClick={item.onClick}
             className="w-full p-4 flex items-center justify-between hover:bg-slate-50 transition-colors group"
           >
@@ -1318,9 +1374,118 @@ const ProfileView = () => {
   );
 };
 
+// --- Points Mall View ---
+const PointsMallView = () => {
+  const { user, setUser, setActiveTab } = useApp();
+  const [mallTab, setMallTab] = useState<'skins' | 'items'>('skins');
+
+  const mallItems = {
+    skins: [
+      { id: 's1', name: '角色皮肤Lite', price: 300, color: 'bg-slate-100', icon: Sparkles },
+      { id: 's2', name: '角色皮肤Max', price: 1000, color: 'bg-blue-100', icon: Sparkles },
+      { id: 's3', name: '超级英雄皮肤', price: 2500, color: 'bg-indigo-100', icon: Sword },
+      { id: 's4', name: '传奇宇航员', price: 5000, color: 'bg-emerald-100', icon: Rocket },
+    ],
+    items: [
+      { id: 'i1', name: '对战入场券', price: 100, desc: '增加一次对战机会', color: 'bg-orange-50', icon: Ticket },
+      { id: 'i2', name: '双倍积分卡', price: 200, desc: '三小时内积分翻倍', color: 'bg-purple-50', icon: Zap },
+      { id: 'i3', name: '提示药水', price: 50, desc: '游戏中获得一个提示', color: 'bg-blue-50', icon: HelpCircle },
+    ]
+  };
+
+  const exchangeHandler = (item: any) => {
+    if (user.coins >= item.price) {
+      setUser(prev => ({ ...prev, coins: prev.coins - item.price }));
+      alert(`兑换成功: ${item.name}`);
+    } else {
+      alert('积分不足');
+    }
+  };
+
+  return (
+    <div className="bg-slate-50 min-h-screen pb-28">
+      {/* Header */}
+      <header className="sticky top-0 z-30 bg-white border-b border-slate-100 px-4 py-4 flex items-center justify-between">
+        <button onClick={() => setActiveTab('profile')} className="w-10 h-10 flex items-center justify-center text-slate-400">
+          <ChevronLeft className="w-6 h-6" />
+        </button>
+        <h2 className="text-xl font-black text-slate-900 font-display">积分商城</h2>
+        <div className="w-10" />
+      </header>
+
+      <div className="p-4 space-y-6 max-w-4xl mx-auto">
+        {/* Balance Card */}
+        <div className="app-card bg-brand-primary p-6 text-white overflow-hidden relative">
+          <div className="relative z-10">
+            <p className="text-white/70 text-sm font-bold">当前可用积分</p>
+            <div className="flex items-center gap-3 mt-1">
+              <Coins className="w-8 h-8 fill-white/20" />
+              <span className="text-4xl font-black font-display tracking-tight">{user.coins}</span>
+            </div>
+          </div>
+          <Coins className="absolute -bottom-4 -right-4 w-32 h-32 text-white/10 rotate-12" />
+        </div>
+
+        {/* Mall Tabs */}
+        <div className="flex bg-slate-200/50 p-1 rounded-2xl">
+          <button
+            onClick={() => setMallTab('skins')}
+            className={cn(
+              "flex-1 py-3 text-sm font-black rounded-xl transition-all",
+              mallTab === 'skins' ? "bg-white text-brand-primary shadow-sm" : "text-slate-400"
+            )}
+          >
+            角色皮肤
+          </button>
+          <button
+            onClick={() => setMallTab('items')}
+            className={cn(
+              "flex-1 py-3 text-sm font-black rounded-xl transition-all",
+              mallTab === 'items' ? "bg-white text-brand-primary shadow-sm" : "text-slate-400"
+            )}
+          >
+            游戏道具
+          </button>
+        </div>
+
+        {/* Goods Grid */}
+        <div className="grid grid-cols-2 gap-4">
+          {mallItems[mallTab].map((item) => (
+            <div key={item.id} className="app-card p-4 space-y-4 flex flex-col">
+              <div className={cn("aspect-square rounded-2xl flex items-center justify-center relative overflow-hidden", item.color)}>
+                <item.icon className="w-12 h-12 text-slate-400/30" />
+              </div>
+              <div className="flex-1 space-y-1">
+                <h4 className="font-black text-slate-800 text-sm">{item.name}</h4>
+                {'desc' in item && <p className="text-[10px] text-slate-400 font-bold">{item.desc}</p>}
+                <div className="flex items-center gap-1.5 pt-1">
+                  <Coins className="w-3 h-3 text-orange-500 fill-orange-500" />
+                  <span className="text-sm font-black text-slate-900 font-display">{item.price}</span>
+                </div>
+              </div>
+              <button
+                onClick={() => exchangeHandler(item)}
+                className="btn-primary py-2.5 text-xs w-full shadow-none"
+              >
+                兑换
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- Audio Utility ---
+const playAudio = (path: string) => {
+  const audio = new Audio(path);
+  audio.play().catch(err => console.error("Audio play failed:", err));
+};
+
 const Navigation = () => {
   const { activeTab, setActiveTab } = useApp();
-  
+
   const tabs = [
     { id: 'home', icon: Home, label: '首页' },
     { id: 'reader', icon: PlayCircle, label: '学习' },
@@ -1331,30 +1496,30 @@ const Navigation = () => {
   if (activeTab === 'phoneticDetail') return null;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 h-16 bg-white border-t border-slate-100 flex items-center justify-between px-2 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.02)]">
-      {tabs.map((tab) => (
-        <button
-          key={tab.id}
-          onClick={() => setActiveTab(tab.id as any)}
-          className={cn(
-            "tab-item group",
-            activeTab === tab.id ? "text-brand-primary" : "text-slate-400"
-          )}
-        >
-          <div className="relative">
-            <tab.icon className={cn(
-              "w-6 h-6 transition-all duration-300",
-              activeTab === tab.id ? "scale-110 stroke-[2.5px]" : "group-hover:scale-110"
-            )} />
-          </div>
-          <span className={cn(
-            "text-[10px] font-black mt-1 transition-all duration-300",
-            activeTab === tab.id ? "opacity-100" : "opacity-60"
-          )}>
-            {tab.label}
-          </span>
-        </button>
-      ))}
+    <nav className="nav-bottom pb-safe">
+      {tabs.map((tab) => {
+        const isActive = activeTab === tab.id;
+        return (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as any)}
+            className="tab-item-btn group"
+          >
+            <div className={cn(
+              "icon-wrapper",
+              isActive ? "active-tab-icon" : "inactive-tab-icon"
+            )}>
+              <tab.icon className="w-5 h-5 stroke-[2.2px]" />
+            </div>
+            <span className={cn(
+              "text-[10px] font-black tracking-tight transition-all duration-300",
+              isActive ? "text-brand-primary opacity-100" : "text-slate-400 opacity-60"
+            )}>
+              {tab.label}
+            </span>
+          </button>
+        );
+      })}
     </nav>
   );
 };
@@ -1419,6 +1584,7 @@ export default function App() {
               {activeTab === 'profile' && <ProfileView />}
               {activeTab === 'wordbank' && <WordBankView />}
               {activeTab === 'library' && <LibraryView />}
+              {activeTab === 'pointsMall' && <PointsMallView />}
               {activeTab === 'phoneticDetail' && <PhoneticDetailView />}
             </motion.div>
           </AnimatePresence>

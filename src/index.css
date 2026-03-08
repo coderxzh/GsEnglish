@@ -4,7 +4,7 @@
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Outfit", sans-serif;
-  
+
   --color-brand-primary: #2563eb;
   --color-brand-secondary: #f59e0b;
   --color-brand-accent: #6366f1;
@@ -58,4 +58,35 @@ input[type='range']::-webkit-slider-thumb {
 
 input[type='range']::-moz-range-thumb {
   @apply w-5 h-5 bg-white border-2 border-brand-primary rounded-full shadow-md cursor-pointer transition-transform active:scale-110;
+}
+
+/* Standard Bottom TabBar Styles */
+.nav-bottom {
+  @apply fixed bottom-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-md border-t border-slate-100 flex items-center justify-around px-2 z-50;
+}
+
+.tab-item-btn {
+  @apply flex-1 flex flex-col items-center justify-center relative py-1 transition-all duration-300;
+}
+
+.icon-wrapper {
+  @apply relative w-10 h-10 flex items-center justify-center transition-all duration-300;
+}
+
+.active-tab-icon {
+  @apply text-brand-primary scale-110;
+}
+
+.inactive-tab-icon {
+  @apply text-slate-400 opacity-60;
+}
+
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
