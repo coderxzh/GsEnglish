@@ -71,7 +71,7 @@ const BookCard = ({ book, onClick }: { book: Book, onClick: () => void }) => {
   return (
     <button
       onClick={onClick}
-      className="app-card w-full overflow-hidden flex flex-row group text-left active:scale-[0.98] transition-transform p-3 gap-4"
+      className="app-card w-full overflow-hidden flex flex-row group text-left active:scale-[0.98] transition-transform p-3 gap-3 sm:gap-4"
     >
       <div className={cn("w-24 aspect-[3/4] flex-shrink-0 flex items-center justify-center relative overflow-hidden rounded-xl", book.color)}>
         {isImageUrl(book.cover) ? (
@@ -86,26 +86,26 @@ const BookCard = ({ book, onClick }: { book: Book, onClick: () => void }) => {
           </div>
         )}
       </div>
-      <div className="flex-1 flex flex-col justify-between py-1">
-        <div className="space-y-1">
-          <div className="flex justify-between items-center">
-            <h3 className="text-xl font-black text-slate-900 truncate font-display">{book.title}</h3>
-            <span className="text-xs font-bold text-slate-400 flex items-center gap-0.5 hover:text-brand-primary transition-colors">
-              修改 <ChevronRight className="w-3 h-3" />
+      <div className="flex-1 flex flex-col justify-between py-1 min-w-0">
+        <div className="space-y-0.5">
+          <div className="flex justify-between items-start gap-2">
+            <h3 className="text-lg font-black text-slate-900 truncate font-display leading-tight flex-1">{book.title}</h3>
+            <span className="text-[10px] font-bold text-slate-400 flex items-center gap-0.5 whitespace-nowrap pt-1">
+              修改 <ChevronRight className="w-2.5 h-2.5" />
             </span>
           </div>
-          <p className="text-xs font-bold text-slate-400 truncate hidden">{book.author}</p>
+          <p className="text-[10px] font-bold text-slate-400 truncate hidden">{book.author}</p>
         </div>
 
-        <div className="space-y-2">
-          <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+        <div className="space-y-1.5">
+          <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${book.progress}%` }}
               className="h-full bg-brand-primary"
             />
           </div>
-          <div className="flex items-center text-xs font-black text-slate-400 uppercase tracking-tight">
+          <div className="flex items-center text-[11px] font-black text-slate-400 uppercase tracking-tight">
             <span>学习进度 {book.progress}%</span>
           </div>
         </div>
@@ -1114,7 +1114,7 @@ const LibraryView = () => {
         <h2 className="text-2xl font-black text-slate-900">书籍图书馆</h2>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="flex flex-col gap-4">
         {user.books.map((book) => (
           <BookCard
             key={book.id}
