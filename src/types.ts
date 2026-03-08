@@ -26,6 +26,7 @@ export interface Book {
 
 export interface UserState {
   name: string;
+  avatar?: string;
   level: number;
   exp: number;
   coins: number;

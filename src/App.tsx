@@ -71,9 +71,9 @@ const BookCard = ({ book, onClick }: { book: Book, onClick: () => void }) => {
   return (
     <button
       onClick={onClick}
-      className="app-card w-full overflow-hidden flex flex-col group text-left h-full active:scale-[0.98] transition-transform"
+      className="app-card w-full overflow-hidden flex flex-row group text-left active:scale-[0.98] transition-transform p-3 gap-4"
     >
-      <div className={cn("aspect-[3/4] flex items-center justify-center p-6 relative overflow-hidden", book.color)}>
+      <div className={cn("w-24 aspect-[3/4] flex-shrink-0 flex items-center justify-center relative overflow-hidden rounded-xl", book.color)}>
         {isImageUrl(book.cover) ? (
           <img
             src={book.cover}
@@ -81,25 +81,32 @@ const BookCard = ({ book, onClick }: { book: Book, onClick: () => void }) => {
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
         ) : (
-          <div className="text-6xl group-hover:scale-110 transition-transform duration-500 dropdown-shadow-md">
+          <div className="text-4xl group-hover:scale-110 transition-transform duration-500 dropdown-shadow-md">
             {book.cover}
           </div>
         )}
       </div>
-      <div className="p-4 space-y-1">
-        <h3 className="font-black text-slate-900 truncate font-display">{book.title}</h3>
-        <p className="text-[11px] font-bold text-slate-400 truncate">{book.author}</p>
-        <div className="pt-2 space-y-1.5">
-          <div className="flex items-center justify-between text-[10px] font-black text-slate-400 uppercase tracking-tighter">
-            <span>进度</span>
-            <span>{book.progress}%</span>
+      <div className="flex-1 flex flex-col justify-between py-1">
+        <div className="space-y-1">
+          <div className="flex justify-between items-center">
+            <h3 className="text-xl font-black text-slate-900 truncate font-display">{book.title}</h3>
+            <span className="text-xs font-bold text-slate-400 flex items-center gap-0.5 hover:text-brand-primary transition-colors">
+              修改 <ChevronRight className="w-3 h-3" />
+            </span>
           </div>
-          <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+          <p className="text-xs font-bold text-slate-400 truncate hidden">{book.author}</p>
+        </div>
+
+        <div className="space-y-2">
+          <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${book.progress}%` }}
               className="h-full bg-brand-primary"
             />
+          </div>
+          <div className="flex items-center text-xs font-black text-slate-400 uppercase tracking-tight">
+            <span>学习进度 {book.progress}%</span>
           </div>
         </div>
       </div>
@@ -199,9 +206,9 @@ const Header = () => {
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm px-4 py-3 flex items-center justify-between border-b border-slate-100/50">
       <div className="flex items-center gap-2">
-        <div className="w-10 h-10 rounded-full bg-brand-primary/10 border-2 border-white shadow-sm overflow-hidden flex items-center justify-center">
+        <div className="w-10 h-10 rounded-full bg-slate-100 border-2 border-white shadow-sm overflow-hidden flex items-center justify-center">
           <img
-            src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`}
+            src={user.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`}
             alt="Avatar"
             className="w-full h-full object-cover"
           />
@@ -770,11 +777,11 @@ const PhoneticDetailView = () => {
           </h3>
 
           {/* Mouth/Tongue Position Diagram */}
-          <div className="aspect-video rounded-2xl bg-slate-50 border border-slate-100 overflow-hidden relative group">
+          <div className="aspect-square rounded-2xl bg-slate-50 border border-slate-100 overflow-hidden relative group">
             <img
-              src={`/images/phonetics/techniques/${detail.symbol.replace(/:/g, '_')}.png`}
+              src={`/images/phonetics/techniques/${ALL_IPA_SYMBOLS.indexOf(detail.symbol) + 1}.png`}
               alt="发音图解"
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
               onError={(e) => {
                 // 回退到占位图以防文件不存在
                 (e.target as HTMLImageElement).src = `https://picsum.photos/seed/${detail.symbol}_mouth/800/450`;
@@ -1153,7 +1160,8 @@ const GameView = () => {
 const ProfileView = () => {
   const { user, setUser, setActiveTab } = useApp();
   const [showParentalModal, setShowParentalModal] = useState(false);
-  const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`;
+  const [showAvatarModal, setShowAvatarModal] = useState(false);
+  const avatarUrl = user.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`;
 
   const updateParentalControl = (updates: Partial<UserState['parentalControl']>) => {
     setUser(prev => ({
@@ -1261,13 +1269,103 @@ const ProfileView = () => {
             </motion.div>
           </div>
         )}
+
+        {showAvatarModal && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowAvatarModal(false)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden"
+            >
+              <div className="p-6 space-y-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-black text-slate-900 font-display">修改头像</h3>
+                  <button
+                    onClick={() => setShowAvatarModal(false)}
+                    className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div className="space-y-6">
+                  {/* Upload Section */}
+                  <div className="flex flex-col items-center gap-4">
+                    <label className="w-24 h-24 rounded-full border-4 border-slate-50 shadow-inner overflow-hidden cursor-pointer relative group bg-slate-50 shrink-0">
+                      <img src={avatarUrl} alt="Preview" className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Plus className="w-6 h-6 text-white" />
+                      </div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                              setUser(prev => ({ ...prev, avatar: reader.result as string }));
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                    </label>
+                    <p className="text-xs font-bold text-slate-400 italic">点击圆形区域上传本地图片</p>
+                  </div>
+
+                  {/* Preset Avatars */}
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest px-1">或者是选择预设头像</h4>
+                    <div className="grid grid-cols-4 gap-3">
+                      {[1, 2, 3, 4].map(i => (
+                        <button
+                          key={i}
+                          onClick={() => setUser(prev => ({ ...prev, avatar: `/images/avatars/avatar${i}.png` }))}
+                          className={cn(
+                            "aspect-square rounded-2xl overflow-hidden border-2 transition-all p-1 bg-slate-50 flex items-center justify-center",
+                            user.avatar === `/images/avatars/avatar${i}.png` ? "border-brand-primary scale-105" : "border-transparent opacity-60 hover:opacity-100"
+                          )}
+                        >
+                          <img src={`/images/avatars/avatar${i}.png`} className="w-full h-full object-contain" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setShowAvatarModal(false)}
+                  className="w-full py-4 bg-brand-primary text-white rounded-2xl font-black text-sm shadow-xl shadow-brand-primary/20 active:scale-[0.98] transition-all"
+                >
+                  完成
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
       </AnimatePresence>
       {/* User Info Header */}
       <section className="flex items-center justify-between px-2">
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full border-4 border-white shadow-md overflow-hidden bg-slate-100">
+          <button
+            onClick={() => setShowAvatarModal(true)}
+            className="w-16 h-16 rounded-full border-4 border-white shadow-md overflow-hidden bg-slate-100 relative group"
+          >
             <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-          </div>
+            <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <Plus className="w-6 h-6 text-white" />
+            </div>
+          </button>
           <div>
             <h2 className="text-2xl font-black text-slate-900 font-display flex items-center gap-2">
               {user.name}
